@@ -26,7 +26,7 @@ An internal tool that shows roles (with specialisations) and what they require (
 
 - Two themes, both light: **Orange** (the default) and **Violet**, chosen on the profile page and saved on the profile (`profiles.theme`), with the browser remembering it too. There is **no dark mode**. Add another with the steps in the header of `src/design-system/tokens.ts`. Never name a company or brand anywhere.
 - Use semantic tokens only (`bg-background`, `text-primary`, `text-critical`…), never raw colours or primitives. Tokens live in `src/design-system/tokens.ts`; run `pnpm tokens` after changing them (tests check contrast and drift).
-- **Every new or changed component gets its story** next to it (`*.stories.tsx`, title `Group/Name`) and an entry in `src/design-system/catalogue.ts`; a test fails otherwise. Storybook: `pnpm storybook`, published at https://chrizspace.github.io/skill-graph/.
+- **Every new or changed component gets its story** next to it (`*.stories.tsx`, title `Group/Name`) and an entry in `src/design-system/catalogue.ts`; a test fails otherwise. Storybook: `pnpm storybook`, published at https://kswider.github.io/skill-graph/.
 
 ## Definition of done (every PR)
 
