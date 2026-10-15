@@ -1248,6 +1248,11 @@ export const people: SeedPerson[] = [
   },
 ];
 
+/** Demo people limited to Explore Skills: no profile, plan or practice. */
+export const basicPeople: { id: string; name: string; email: string }[] = [
+  { id: "seed-sky", name: "Sky Bennett", email: "sky.bennett@example.com" },
+];
+
 /** Example recommendations: [id, from, to, role or item, specialisation (for a target), comment, status]. */
 export const seedRecommendations: {
   id: string;

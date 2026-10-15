@@ -1,13 +1,13 @@
 import { eq, count } from "drizzle-orm";
 import type { Actor } from "../domain/access";
 import type { Database } from "./database";
-import { practiceLeads, practices, profiles, siteLeads, user } from "./schema";
+import { basicUsers, practiceLeads, practices, profiles, siteLeads, user } from "./schema";
 
 /** Who someone is in the organisation, from the data: reporting lines, practice leads and site leads. */
 export async function loadActor(db: Database, userId: string): Promise<Actor | null> {
   const [person] = await db.select().from(user).where(eq(user.id, userId));
   if (!person) return null;
-  const [[profile], [reports], led, [site]] = await Promise.all([
+  const [[profile], [reports], led, [site], [basic]] = await Promise.all([
     db.select({ practiceId: profiles.practiceId }).from(profiles).where(eq(profiles.userId, userId)),
     db.select({ n: count() }).from(profiles).where(eq(profiles.managerId, userId)),
     db
@@ -17,7 +17,21 @@ export async function loadActor(db: Database, userId: string): Promise<Actor | n
       .where(eq(practiceLeads.userId, userId))
       .orderBy(practices.name),
     db.select({ n: count() }).from(siteLeads).where(eq(siteLeads.userId, userId)),
+    db.select({ n: count() }).from(basicUsers).where(eq(basicUsers.userId, userId)),
   ]);
+  // Basic overrides every other type: the Site Lead can't set it on someone who is one, so this is only a safeguard
+  if (basic.n > 0) {
+    return {
+      userId,
+      name: person.name,
+      email: person.email,
+      practiceId: profile?.practiceId ?? null,
+      reportCount: 0,
+      leadOf: [],
+      siteLead: false,
+      basic: true,
+    };
+  }
   return {
     userId,
     name: person.name,
@@ -42,8 +56,8 @@ export const DEMO_EMAIL_DOMAIN = "@example.com";
 
 /**
  * The accounts offered on the demo sign-in, one for each way of using the app: an Employee, a Career Advisor with two
- * direct reports, a Practice Lead, a Practice Lead who is also the Career Advisor of one person, the Site Lead, and a second Site Lead who is also a
- * Practice Lead and a Career Advisor.
+ * direct reports, a Practice Lead, a Practice Lead who is also the Career Advisor of one person, the Site Lead, a second Site Lead who is also a
+ * Practice Lead and a Career Advisor, and a Basic person who can only explore skills.
  * The seed holds more people; any of them can still sign in by address (the tests do).
  */
 export const DEMO_ACCOUNTS = [
@@ -53,6 +67,7 @@ export const DEMO_ACCOUNTS = [
   "casey.lin@example.com",
   "jordan.kim@example.com",
   "robin.weiss@example.com",
+  "sky.bennett@example.com",
 ] as const;
 
 export async function listDemoAccounts(db: Database) {

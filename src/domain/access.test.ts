@@ -30,6 +30,16 @@ describe("user types follow from the data", () => {
 });
 
 describe("named profiles", () => {
+  it("gives a Basic person no profile, no plan and no recommendations", () => {
+    const basic: Actor = { ...base, userId: "u-basic", basic: true };
+    const own = { id: basic.userId, managerId: null, practiceId: null };
+    expect(can(basic, "profile:view", own)).toBe(false);
+    expect(can(basic, "profile:edit", { id: basic.userId })).toBe(false);
+    expect(can(basic, "recommendation:answer", { personId: basic.userId })).toBe(false);
+    expect(can(basic, "changeRequest:create", { practiceId: frontend.id })).toBe(false);
+    expect(can(basic, "catalogue:add")).toBe(false);
+    expect(can(basic, "site:manage")).toBe(false);
+  });
   it("lets people open their own profile", () => {
     expect(can(employee, "profile:view", { id: employee.userId, managerId: null, practiceId: null })).toBe(
       true,

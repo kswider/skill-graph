@@ -29,6 +29,8 @@ export default defineConfig({
     gracefulShutdown: { signal: "SIGTERM", timeout: 5000 },
     url: `http://localhost:${port}/sign-in`,
     timeout: 300_000,
+    // the tests sign in as each person, so a default sign-in from .env.local must stay off
+    env: { DEFAULT_DEMO_EMAIL: "" },
     // only with E2E_KEEP_DB (README, "End-to-end tests"): a server that was started before the database was reset holds
     // stale ids in its graph cache, so a normal run always starts its own
     reuseExistingServer: Boolean(process.env.E2E_KEEP_DB),

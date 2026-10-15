@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { Actor } from "../domain/access";
+import { can, type Actor } from "../domain/access";
 import type { Graph } from "../domain/graph";
+import { navigationFor } from "../domain/navigation";
 import { loadActor } from "./actor";
 import { loadGraph } from "./graph";
 import { createRole, EditError, ForbiddenError } from "./graph-write";
@@ -18,6 +19,7 @@ import {
   removeSiteLead,
   renameCategory,
   setItemCategory,
+  setPersonBasic,
   setPersonManager,
   setPersonPractice,
   updatePractice,
@@ -178,6 +180,7 @@ describe("people and reporting lines", () => {
     expect(people.find((p) => p.id === "seed-jordan")!.siteLead).toBe(true);
     expect(people.find((p) => p.id === "seed-taylor")!.leads).toHaveLength(1);
     expect(Object.keys(people[0]).sort()).toEqual([
+      "basic",
       "email",
       "id",
       "leads",
@@ -241,6 +244,41 @@ describe("people and reporting lines", () => {
     );
     await reject(removeSiteLead(t.db, jordan, "seed-alex"));
     await reject(addSiteLead(t.db, taylor, "seed-alex"), ForbiddenError);
+  });
+
+  it("limits someone to Explore Skills, and lifts it again", async () => {
+    await setPersonBasic(t.db, jordan, { userId: "new", basic: true });
+    expect(await lastAudit()).toMatchObject({ action: "create", entity: "access", entityId: "basic:new" });
+    expect((await lastAudit()).after).toMatchObject({
+      summary: "limited Nina Newcomer to Explore Skills (Basic)",
+    });
+    const nina = (await ctx("new")).actor;
+    expect(nina.basic).toBe(true);
+    expect(navigationFor(nina).map((g) => g.label)).toEqual(["Explore Skills"]);
+    expect(can(nina, "profile:edit", { id: "new" })).toBe(false);
+    expect((await listPeople(t.db)).find((p) => p.id === "new")!.basic).toBe(true);
+
+    const count = (await t.db.select().from(auditLog)).length;
+    await setPersonBasic(t.db, jordan, { userId: "new", basic: true }); // unchanged: nothing recorded
+    expect(await t.db.select().from(auditLog)).toHaveLength(count);
+
+    await setPersonBasic(t.db, jordan, { userId: "new", basic: false });
+    expect((await lastAudit()).before).toMatchObject({ summary: "lifted Basic from Nina Newcomer" });
+    expect((await ctx("new")).actor.basic).toBeUndefined();
+  });
+
+  it("keeps Basic apart from the other types, and to the Site Lead", async () => {
+    for (const userId of ["seed-jordan", "seed-taylor", "seed-riley"])
+      await reject(setPersonBasic(t.db, jordan, { userId, basic: true }));
+    await reject(setPersonBasic(t.db, jordan, { userId: "ghost", basic: true }));
+    await reject(setPersonBasic(t.db, taylor, { userId: "new", basic: true }), ForbiddenError);
+    await setPersonBasic(t.db, jordan, { userId: "new", basic: true });
+    const practiceId = taylor.actor.leadOf[0].id;
+    await reject(appointLead(t.db, jordan, { practiceId, userId: "new" }));
+    await reject(addSiteLead(t.db, jordan, "new"));
+    await reject(createPractice(t.db, jordan, { name: "Basic Lead", leadUserId: "new" }));
+    await reject(setPersonManager(t.db, jordan, { userId: "seed-alex", managerId: "new" }));
+    await setPersonBasic(t.db, jordan, { userId: "new", basic: false });
   });
 });
 

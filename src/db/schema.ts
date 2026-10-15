@@ -145,6 +145,13 @@ export const siteLeads = pgTable(
   (t) => [primaryKey({ columns: [t.siteId, t.userId] }), index("site_leads_user_idx").on(t.userId)],
 );
 
+// People limited to Explore Skills: no profile, plan or people views. Set by the Site Lead.
+export const basicUsers = pgTable("basic_users", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+});
+
 export const practices = pgTable(
   "practices",
   {

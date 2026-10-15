@@ -2,6 +2,7 @@ import { Explorer, type ExplorerInitial } from "./explorer";
 import { catalogueTypes, type NodeType, weights } from "@/domain/graph";
 import { loadMyProfile } from "@/db/graph";
 import { getDb } from "@/db/client";
+import { isBasic } from "@/domain/access";
 import { getGraphRows, getPractices } from "@/lib/graph-data";
 import { param } from "@/lib/query";
 import { requireActor } from "@/lib/session";
@@ -17,7 +18,7 @@ export default async function Explore({ searchParams }: PageProps<"/explore">) {
   const [rows, practices, mine] = await Promise.all([
     getGraphRows(),
     getPractices(),
-    loadMyProfile(getDb(), actor.userId),
+    isBasic(actor) ? null : loadMyProfile(getDb(), actor.userId),
   ]);
   const initial: ExplorerInitial = {
     focus: param(sp.focus) ?? null,

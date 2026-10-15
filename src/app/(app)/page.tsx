@@ -4,7 +4,7 @@ import { AssessmentList } from "@/components/domain/assessment-list";
 import { ReadinessMeter } from "@/components/domain/readiness-meter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { isManager, isPracticeLead } from "@/domain/access";
+import { isBasic, isManager, isPracticeLead } from "@/domain/access";
 import { assess } from "@/domain/assess";
 import { targetLabel, type Graph } from "@/domain/graph";
 import { pathsFor, type PathOption } from "@/domain/paths";
@@ -56,8 +56,40 @@ function PathList({
   );
 }
 
+const exploreLinks = [
+  { href: "/roles", label: "Roles", text: "What each role asks for, and where it can lead." },
+  { href: "/catalogue", label: "Catalogue", text: "Every technical skill, soft skill and certification." },
+  { href: "/explore", label: "Graph", text: "How roles, skills and certifications connect." },
+  { href: "/compare", label: "Compare", text: "What two roles share and what a move adds." },
+];
+
+function BasicHome({ name }: { name: string }) {
+  return (
+    <div className="flex max-w-3xl flex-col gap-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome, {name.split(" ")[0]}</h1>
+        <p className="mt-1 text-muted-foreground">Explore how roles, skills and certifications connect.</p>
+      </div>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {exploreLinks.map((l) => (
+          <li key={l.href}>
+            <Link
+              href={l.href}
+              className="block rounded-lg border p-4 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              <span className="font-medium">{l.label}</span>
+              <span className="block text-sm text-muted-foreground">{l.text}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default async function Home() {
   const { actor, graph, mine, recommendations, today } = await loadMe();
+  if (isBasic(actor)) return <BasicHome name={actor.name} />;
   const profile = mine?.profile;
   if (!profile?.current) redirect("/onboarding");
 

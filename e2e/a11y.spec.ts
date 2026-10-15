@@ -71,6 +71,14 @@ test("everyone: home, roles, catalogue, graph, compare, profile, plan, onboardin
   await close();
 });
 
+test("a Basic person: home and the Explore Skills pages", async ({ browser }) => {
+  const { page, close } = await session(browser, "Sky Bennett");
+  for (const path of ["/", "/roles", "/catalogue", "/compare?a=frontend-developer--react&b=data-engineer"]) {
+    await visit(page, path);
+  }
+  await close();
+});
+
 test("the graph explorer: overview, a role, a skill, path mode, the table view, search results", async ({
   browser,
 }) => {

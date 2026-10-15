@@ -7,7 +7,7 @@ import * as z from "zod";
 import { getDb } from "@/db/client";
 import { DEMO_EMAIL_DOMAIN } from "@/db/actor";
 import * as schema from "@/db/schema";
-import { isDemoDeployment } from "./demo-mode";
+import { defaultDemoEmailFor, isDemoDeployment } from "./demo-mode";
 
 const production = process.env.VERCEL_ENV === "production";
 
@@ -21,6 +21,9 @@ export const demoSignInEnabled =
 export const microsoftConfigured = Boolean(
   process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET,
 );
+
+/** When set, everyone is signed in as this demo person and the sign-in page is skipped. Only where demo sign-in is on. */
+export const defaultDemoEmail = defaultDemoEmailFor();
 
 /** POST /api/auth/sign-in/demo { email }: a session for a seeded demo person. Refuses in production and for real addresses. */
 const demoSignIn = {

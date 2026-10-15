@@ -10,12 +10,14 @@ import { catalogueTypes, targetLabel, type CatalogueType } from "@/domain/graph"
 import { browseCatalogue } from "@/domain/browse";
 import { slugOfTarget } from "@/domain/profile-input";
 import { loadMe } from "@/lib/me";
+import { requireOwnProfile } from "@/lib/session";
 import { TargetSelect } from "../target-select";
 import { removeCertification, saveCertificationAction, saveSkills, saveTarget, saveTheme } from "./actions";
 
 export const metadata = { title: "My profile · Skill Navigator" };
 
 export default async function Me() {
+  await requireOwnProfile();
   const { graph, practices, mine, today } = await loadMe();
   const current = mine?.profile.current;
   if (!mine || !current) redirect("/onboarding");

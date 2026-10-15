@@ -14,6 +14,7 @@ import { loadGraph } from "./graph";
 import { EditError, ForbiddenError } from "./graph-write";
 import {
   auditLog,
+  basicUsers,
   edges,
   nodes,
   practiceLeads,
@@ -64,6 +65,12 @@ const personName = async (tx: Database, id: string) => {
   return row?.name ?? fail("That person doesn't exist.");
 };
 
+/** A Basic person can't be given a role: appoint them only after lifting Basic. */
+const notBasic = async (tx: Database, id: string, who: string, what: string) => {
+  const [row] = await tx.select().from(basicUsers).where(eq(basicUsers.userId, id));
+  if (row) fail(`${who} is Basic, so they can't be ${what}. Lift Basic first.`);
+};
+
 // ---------------------------------------------------------------------------------------------------- practices
 
 /** A new practice with its first Practice Lead (a practice needs at least one). */
@@ -85,6 +92,7 @@ export async function createPractice(
     if (existing.some((p) => normalizeName(p.name) === normalizeName(name)))
       fail(`A practice called "${name}" already exists.`);
     const leadName = await personName(tx, input.leadUserId);
+    await notBasic(tx, input.leadUserId, leadName, "a Practice Lead");
     let slug = slugify(name);
     for (let i = 2; existing.some((p) => p.slug === slug); i++) slug = `${slugify(name)}-${i}`;
     const [row] = await tx
@@ -155,6 +163,7 @@ export async function appointLead(
       .where(eq(practices.id, input.practiceId));
     if (!practice) fail("That practice doesn't exist.");
     const who = await personName(tx, input.userId);
+    await notBasic(tx, input.userId, who, "a Practice Lead");
     const [already] = await tx
       .select()
       .from(practiceLeads)
@@ -214,19 +223,21 @@ export interface PersonAdminRow {
   practiceId: string | null;
   managerId: string | null;
   siteLead: boolean;
+  basic: boolean;
   leads: string[];
   reports: number;
 }
 
 /** Everyone who has signed in, with where they sit in the organisation. No skills, no profile content. */
 export async function listPeople(db: Database): Promise<PersonAdminRow[]> {
-  const [users, profs, sl, pl] = await Promise.all([
+  const [users, profs, sl, pl, bu] = await Promise.all([
     db.select({ id: user.id, name: user.name, email: user.email }).from(user).orderBy(user.name),
     db
       .select({ userId: profiles.userId, practiceId: profiles.practiceId, managerId: profiles.managerId })
       .from(profiles),
     db.select({ userId: siteLeads.userId }).from(siteLeads),
     db.select({ userId: practiceLeads.userId, practiceId: practiceLeads.practiceId }).from(practiceLeads),
+    db.select({ userId: basicUsers.userId }).from(basicUsers),
   ]);
   return users.map((u) => {
     const p = profs.find((x) => x.userId === u.id);
@@ -235,6 +246,7 @@ export async function listPeople(db: Database): Promise<PersonAdminRow[]> {
       practiceId: p?.practiceId ?? null,
       managerId: p?.managerId ?? null,
       siteLead: sl.some((x) => x.userId === u.id),
+      basic: bu.some((x) => x.userId === u.id),
       leads: pl.filter((x) => x.userId === u.id).map((x) => x.practiceId),
       reports: profs.filter((x) => x.managerId === u.id).length,
     };
@@ -291,6 +303,7 @@ export async function setPersonManager(
     const who = await personName(tx, input.userId);
     if (input.managerId === input.userId) fail("Nobody can report to themselves.");
     const managerName = input.managerId ? await personName(tx, input.managerId) : null;
+    if (input.managerId) await notBasic(tx, input.managerId, managerName!, "a Career Advisor");
     const rows = await tx.select({ userId: profiles.userId, managerId: profiles.managerId }).from(profiles);
     const managerOf = new Map(rows.map((r) => [r.userId, r.managerId]));
     if (reportingCycle(managerOf, input.userId, input.managerId)) {
@@ -316,6 +329,7 @@ export async function addSiteLead(db: Database, ctx: SiteContext, userId: string
   return db.transaction(async (tx) => {
     const [site] = await tx.select({ id: sites.id }).from(sites).limit(1);
     const who = await personName(tx, userId);
+    await notBasic(tx, userId, who, "a Site Lead");
     const [already] = await tx.select().from(siteLeads).where(eq(siteLeads.userId, userId));
     if (already) fail(`${who} is already a Site Lead.`);
     await tx.insert(siteLeads).values({ siteId: site!.id, userId });
@@ -344,6 +358,46 @@ export async function removeSiteLead(db: Database, ctx: SiteContext, userId: str
       entityId: `site:${userId}`,
       summary: `removed ${who} as Site Lead`,
       before: { person: who, role: "site_lead" },
+    });
+  });
+}
+
+/** Limits someone to Explore Skills, or lifts it. Refused for a Site Lead, a Practice Lead or a Career Advisor. */
+export async function setPersonBasic(
+  db: Database,
+  ctx: SiteContext,
+  input: { userId: string; basic: boolean },
+) {
+  allow(can(ctx.actor, "site:manage"));
+  return db.transaction(async (tx) => {
+    const who = await personName(tx, input.userId);
+    const [current] = await tx.select().from(basicUsers).where(eq(basicUsers.userId, input.userId));
+    if (Boolean(current) === input.basic) return;
+    if (input.basic) {
+      const [site] = await tx
+        .select({ n: count() })
+        .from(siteLeads)
+        .where(eq(siteLeads.userId, input.userId));
+      const [lead] = await tx
+        .select({ n: count() })
+        .from(practiceLeads)
+        .where(eq(practiceLeads.userId, input.userId));
+      const [reports] = await tx
+        .select({ n: count() })
+        .from(profiles)
+        .where(eq(profiles.managerId, input.userId));
+      if (site.n + lead.n + reports.n > 0)
+        fail(`${who} is a Site Lead, a Practice Lead or a Career Advisor: remove that first.`);
+      await tx.insert(basicUsers).values({ userId: input.userId });
+    } else {
+      await tx.delete(basicUsers).where(eq(basicUsers.userId, input.userId));
+    }
+    await audit(tx, ctx, {
+      action: input.basic ? "create" : "delete",
+      entity: "access",
+      entityId: `basic:${input.userId}`,
+      summary: input.basic ? `limited ${who} to Explore Skills (Basic)` : `lifted Basic from ${who}`,
+      [input.basic ? "after" : "before"]: { person: who, role: "basic" },
     });
   });
 }

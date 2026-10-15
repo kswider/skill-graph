@@ -6,7 +6,7 @@ import { MicrosoftButton } from "@/components/app/microsoft-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { isManager, isPracticeLead } from "@/domain/access";
-import { authConfigured, demoSignInEnabled, microsoftConfigured } from "@/lib/auth";
+import { authConfigured, defaultDemoEmail, demoSignInEnabled, microsoftConfigured } from "@/lib/auth";
 import { getActor, safeNext } from "@/lib/session";
 import { signInAsDemo } from "../actions";
 
@@ -21,8 +21,13 @@ export default function SignInPage({ searchParams }: PageProps<"/sign-in">) {
 }
 
 async function SignIn({ searchParams }: Pick<PageProps<"/sign-in">, "searchParams">) {
-  const next = safeNext((await searchParams).next);
-  if (await getActor()) redirect(next);
+  const sp = await searchParams;
+  const next = safeNext(sp.next);
+  // ?manual=1 shows the picker even when signed in or when a default person is set, to switch person
+  if (!sp.manual) {
+    if (await getActor()) redirect(next);
+    if (defaultDemoEmail) redirect(`/auto-sign-in?next=${encodeURIComponent(next)}`);
+  }
 
   const db = getDb();
   const people = demoSignInEnabled
@@ -30,6 +35,7 @@ async function SignIn({ searchParams }: Pick<PageProps<"/sign-in">, "searchParam
         (await listDemoAccounts(db)).map(async (p) => {
           const actor = (await loadActor(db, p.id))!;
           const types = [
+            ...(actor.basic ? ["Basic: Explore Skills only"] : []),
             ...(actor.siteLead ? ["Site Lead"] : []),
             ...(isPracticeLead(actor) ? ["Practice Lead"] : []),
             ...(isManager(actor)

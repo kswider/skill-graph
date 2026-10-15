@@ -32,6 +32,11 @@ export async function requireCan<A extends Action>(
   return actor;
 }
 
+/** For the pages about a person's own profile: a Basic person has none, so it's a 404 for them. */
+export async function requireOwnProfile(): Promise<Actor> {
+  return requireCan("profile:edit", { id: (await requireActor()).userId });
+}
+
 /** Only same-site paths, so the sign-in page can't be used to send someone elsewhere. */
 export function safeNext(next: string | string[] | undefined) {
   const value = Array.isArray(next) ? next[0] : next;

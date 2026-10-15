@@ -8,7 +8,7 @@ import { listPeople } from "@/db/site";
 import { getPractices } from "@/lib/graph-data";
 import { hrefWith, param } from "@/lib/query";
 import { requireCan } from "@/lib/session";
-import { addSiteLeadAction, removeSiteLeadAction, setPersonAction } from "../actions";
+import { addSiteLeadAction, removeSiteLeadAction, setPersonAction, setPersonBasicAction } from "../actions";
 
 export const metadata = { title: "People · Skill Navigator" };
 
@@ -135,6 +135,7 @@ export default async function SitePeople({ searchParams }: PageProps<"/site/peop
                 <span className="font-medium">{p.name}</span>
                 <span className="text-sm text-muted-foreground">{p.email}</span>
                 {p.siteLead && <Badge variant="secondary">Site Lead</Badge>}
+                {p.basic && <Badge variant="outline">Basic: Explore Skills only</Badge>}
                 {p.leads.length > 0 && (
                   <Badge variant="secondary">
                     Practice Lead of{" "}
@@ -145,6 +146,20 @@ export default async function SitePeople({ searchParams }: PageProps<"/site/peop
                   <Badge variant="outline">
                     {p.reports} {p.reports === 1 ? "report" : "reports"}
                   </Badge>
+                )}
+                {!p.siteLead && p.leads.length === 0 && p.reports === 0 && (
+                  <ActionForm action={setPersonBasicAction} className="flex-row items-center gap-2">
+                    <input type="hidden" name="userId" value={p.id} />
+                    <input type="hidden" name="basic" value={p.basic ? "false" : "true"} />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="ghost"
+                      aria-label={p.basic ? `Lift Basic from ${p.name}` : `Limit ${p.name} to Explore Skills`}
+                    >
+                      {p.basic ? "Lift Basic" : "Make Basic"}
+                    </Button>
+                  </ActionForm>
                 )}
               </div>
               <ActionForm action={setPersonAction} className="flex-row flex-wrap items-end gap-2">
