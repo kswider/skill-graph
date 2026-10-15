@@ -17,6 +17,11 @@ describe("navigation per user type", () => {
   it("gives everyone My Skills and Explore Skills", () => {
     expect(labels(base)).toEqual(["My Skills", "Explore Skills"]);
   });
+  it("gives a Basic person Explore Skills only", () => {
+    const groups = navigationFor({ ...base, basic: true });
+    expect(groups.map((g) => g.label)).toEqual(["Explore Skills"]);
+    expect(groups[0].items.map((i) => i.href)).toEqual(["/", "/roles", "/catalogue", "/explore", "/compare"]);
+  });
   it("adds Manage Team, and Change requests under Explore Skills, for a manager", () => {
     const groups = navigationFor({ ...base, reportCount: 3 });
     expect(groups.map((g) => g.label)).toEqual(["My Skills", "Explore Skills", "Manage Team"]);

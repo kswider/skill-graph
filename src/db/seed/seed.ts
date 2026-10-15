@@ -3,6 +3,7 @@ import { changesSchema, type Change } from "../../domain/change-requests";
 import { normalizeName, slugify, specializationSlug } from "../../domain/names";
 import type { Database } from "../database";
 import {
+  basicUsers,
   changeRequestComments,
   changeRequests,
   edges,
@@ -208,10 +209,21 @@ export async function seed(db: Database, { demo = true, today = new Date() } = {
     added.people = (
       await tx
         .insert(user)
-        .values(data.people.map((p) => ({ id: p.id, name: p.name, email: p.email, emailVerified: true })))
+        .values(
+          [...data.people, ...data.basicPeople].map((p) => ({
+            id: p.id,
+            name: p.name,
+            email: p.email,
+            emailVerified: true,
+          })),
+        )
         .onConflictDoNothing()
         .returning({ id: user.id })
     ).length;
+    await tx
+      .insert(basicUsers)
+      .values(data.basicPeople.map((p) => ({ userId: p.id })))
+      .onConflictDoNothing();
     await tx
       .insert(profiles)
       .values(

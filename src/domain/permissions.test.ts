@@ -10,8 +10,8 @@ const row = (label: RegExp) => {
 const who = (allowed: Record<UserType, boolean>) => userTypes.filter((t) => allowed[t]);
 
 describe("the permission matrix", () => {
-  it("lists the four user types in order", () => {
-    expect(userTypes).toEqual(["employee", "manager", "practice_lead", "site_lead"]);
+  it("lists the five user types in order", () => {
+    expect(userTypes).toEqual(["basic", "employee", "manager", "practice_lead", "site_lead"]);
   });
   it("starts with the own profile", () => {
     expect(permissionMatrix()[0].label).toBe("Own profile");
@@ -19,9 +19,9 @@ describe("the permission matrix", () => {
   it("gives every row an answer for every type", () => {
     for (const r of rows) expect(Object.keys(r.allowed).sort()).toEqual([...userTypes].sort());
   });
-  it("lets everyone browse and keep their own profile", () => {
+  it("lets everyone browse, and everyone but Basic keep their own profile", () => {
     expect(who(row(/Browse roles/))).toEqual([...userTypes]);
-    expect(who(row(/Keep my profile/))).toEqual([...userTypes]);
+    expect(who(row(/Keep my profile/))).toEqual(userTypes.filter((t) => t !== "basic"));
   });
   it("keeps named profiles to the person, their manager and the leads of their practice", () => {
     expect(who(row(/named profile of a direct report/))).toEqual(["manager"]);

@@ -14,6 +14,7 @@ import {
   removeSiteLead,
   renameCategory,
   setItemCategory,
+  setPersonBasic,
   setPersonManager,
   setPersonPractice,
   updatePractice,
@@ -91,6 +92,14 @@ export async function setPersonAction(_: ActionState, formData: FormData): Promi
     const userId = text(formData, "userId");
     await setPersonPractice(getDb(), ctx, { userId, practiceId: orNull(formData, "practiceId") });
     await setPersonManager(getDb(), ctx, { userId, managerId: orNull(formData, "managerId") });
+  });
+}
+
+export async function setPersonBasicAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  return attempt(formData, async (ctx) => {
+    const basic = text(formData, "basic") === "true";
+    await setPersonBasic(getDb(), ctx, { userId: text(formData, "userId"), basic });
+    return basic ? "Limited to Explore Skills." : "Basic lifted.";
   });
 }
 

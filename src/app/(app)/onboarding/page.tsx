@@ -6,6 +6,7 @@ import { roles, specializationsOf, requirementsOf, groupByType, type Graph } fro
 import { targetBySlug } from "@/domain/profile-input";
 import { loadMe } from "@/lib/me";
 import { hrefWith, param } from "@/lib/query";
+import { requireOwnProfile } from "@/lib/session";
 import { saveRole } from "../me/actions";
 
 export const metadata = { title: "Choose your role · Skill Navigator" };
@@ -19,6 +20,7 @@ const stepLink =
  */
 export default async function Onboarding({ searchParams }: PageProps<"/onboarding">) {
   const sp = await searchParams;
+  await requireOwnProfile();
   const { graph, practices, mine } = await loadMe();
   const practice = practices.find((p) => p.slug === param(sp.practice));
   const roleNode = roles(graph).find((r) => r.slug === param(sp.role) && r.practiceId === practice?.id);

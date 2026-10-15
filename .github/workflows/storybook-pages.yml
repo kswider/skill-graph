@@ -1,5 +1,5 @@
 name: Storybook on GitHub Pages
-# Publishes the design system's Storybook at https://chrizspace.github.io/skill-graph/ on every change to main.
+# Publishes the design system's Storybook at https://kswider.github.io/skill-graph/ on every change to main.
 on:
   push:
     branches: [main]

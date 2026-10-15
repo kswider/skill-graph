@@ -21,7 +21,7 @@ The plan, data model and milestones are in [docs/PLAN.md](docs/PLAN.md).
 
 ## Design system
 
-Storybook with every primitive and component, in the Orange and Violet themes (light only; the toolbar switches between them): https://chrizspace.github.io/skill-graph/ (published from `main`). Locally: `pnpm storybook`.
+Storybook with every primitive and component, in the Orange and Violet themes (light only; the toolbar switches between them): https://kswider.github.io/skill-graph/ (published from `main`). Locally: `pnpm storybook`.
 
 ## Getting started
 
@@ -37,7 +37,7 @@ pnpm dev
 
 Open http://localhost:3000.
 
-The seed holds a demo site with 5 practices, 19 roles (4 specialisations), a catalogue of technical skills, soft skills and certifications, and 18 fictional people (`@example.com`): a Site Lead, a Practice Lead per practice, two managers and their teams. Production gets the site, practices and graph but never the demo people. Details: `docs/PLAN.md` §7.
+The seed holds a demo site with 5 practices, 19 roles (4 specialisations), a catalogue of technical skills, soft skills and certifications, and 19 fictional people (`@example.com`): a Site Lead, a Practice Lead per practice, two managers and their teams, and a Basic person who can only explore skills. Production gets the site, practices and graph but never the demo people. Details: `docs/PLAN.md` §7.
 
 ## End-to-end tests
 
@@ -126,7 +126,7 @@ Local development doesn't use Neon: from M1 it runs Postgres in Docker. `vercel 
 
 ### Sign-in
 
-- **Demo sign-in** (locally and on previews; on production only if you set `ENABLE_DEMO_SIGN_IN=true` and `BETTER_AUTH_SECRET`, which makes that deployment a demo: anyone who finds the address can use it as any demo person, and every build seeds the demo people, so use it for fictional data only): the sign-in page offers six of the seeded people, one for each way of using the app (an Employee, a Career Advisor of two people, a Practice Lead, a Practice Lead who is also the Career Advisor of one person, the Site Lead, and a second Site Lead who is also a Practice Lead and a Career Advisor). It needs no setup. The other people are still seeded; the tests sign in as any of them.
+- **Demo sign-in** (locally and on previews; on production only if you set `ENABLE_DEMO_SIGN_IN=true` and `BETTER_AUTH_SECRET`, which makes that deployment a demo: anyone who finds the address can use it as any demo person, and every build seeds the demo people, so use it for fictional data only): the sign-in page offers seven of the seeded people, one for each way of using the app (an Employee, a Career Advisor of two people, a Practice Lead, a Practice Lead who is also the Career Advisor of one person, the Site Lead, a second Site Lead who is also a Practice Lead and a Career Advisor, and a Basic person who can only explore skills). It needs no setup. The other people are still seeded; the tests sign in as any of them. Set `DEFAULT_DEMO_EMAIL` (for example in `.env.local`) to skip the sign-in page and sign everyone in as that person; `/sign-in?manual=1` still shows the picker.
 - **Microsoft sign-in** (production): Better Auth with the Microsoft (Entra ID) provider. It is shown when `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET` are set.
 
 To set up Microsoft sign-in:

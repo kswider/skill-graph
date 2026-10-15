@@ -12,7 +12,8 @@ export default async function Permissions() {
       <header>
         <h1 className="text-3xl font-bold tracking-tight">Permissions</h1>
         <p className="mt-1 text-muted-foreground">
-          What each type of user may do. A person can be several types at once, and their permissions add up.
+          What each type of user may do. Employee, Career Advisor, Practice Lead and Site Lead add up: a
+          person can be several at once. Basic stands alone.
         </p>
       </header>
       <section aria-labelledby="types" className="flex flex-col gap-2">

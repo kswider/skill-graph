@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { signInAs } from "./helpers";
 
-test("the demo sign-in offers six accounts, one for each way of using the app, and each works", async ({
+test("the demo sign-in offers seven accounts, one for each way of using the app, and each works", async ({
   browser,
 }) => {
   test.setTimeout(60_000);
@@ -12,12 +12,13 @@ test("the demo sign-in offers six accounts, one for each way of using the app, a
     ["Casey Lin", "Practice Lead, Career Advisor of 1 person"],
     ["Jordan Kim", "Site Lead"],
     ["Robin Weiss", "Site Lead, Practice Lead, Career Advisor of 2 people"],
+    ["Sky Bennett", "Basic: Explore Skills only"],
   ];
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto("/sign-in");
   const buttons = page.getByRole("list").getByRole("button");
-  await expect(buttons).toHaveCount(6);
+  await expect(buttons).toHaveCount(7);
   const rows = (await buttons.allInnerTexts()).map((t) =>
     t
       .split("\n")

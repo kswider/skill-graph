@@ -17,6 +17,10 @@ type Story = StoryObj<typeof meta>;
 export const Employee: Story = {
   args: { groups: navigationFor({ ...person, reportCount: 0, leadOf: [], siteLead: false }) },
 };
+export const Basic: Story = {
+  args: { groups: navigationFor({ ...person, reportCount: 0, leadOf: [], siteLead: false, basic: true }) },
+  parameters: { nextjs: { navigation: { pathname: "/roles" } } },
+};
 export const Manager: Story = {
   args: { groups: navigationFor({ ...person, reportCount: 5, leadOf: [], siteLead: false }) },
   parameters: { nextjs: { navigation: { pathname: "/team" } } },

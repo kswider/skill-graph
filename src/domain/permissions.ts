@@ -1,10 +1,11 @@
 import { can, isManager, type Actor, type PersonRef, type Scope } from "./access";
 
-/** The four kinds of user (docs/PLAN.md §1). Everyone is an Employee; the others are added by the data, and add up. */
-export const userTypes = ["employee", "manager", "practice_lead", "site_lead"] as const;
+/** The kinds of user (docs/PLAN.md §1). Basic is set by the Site Lead and stands alone; the others add up. */
+export const userTypes = ["basic", "employee", "manager", "practice_lead", "site_lead"] as const;
 export type UserType = (typeof userTypes)[number];
 
 export const userTypeLabel: Record<UserType, string> = {
+  basic: "Basic",
   employee: "Employee",
   manager: "Career Advisor",
   practice_lead: "Practice Lead",
@@ -12,7 +13,9 @@ export const userTypeLabel: Record<UserType, string> = {
 };
 
 export const userTypeSummary: Record<UserType, string> = {
-  employee: "Everyone who signs in.",
+  basic:
+    "Can only explore skills: roles, the catalogue, the graph and comparing roles. Set by the Site Lead; has no profile and no other type.",
+  employee: "Everyone who signs in, unless the Site Lead made them Basic.",
   manager:
     "Has at least one direct report. The Site Lead makes someone a Career Advisor by giving them a direct report.",
   practice_lead:
@@ -32,6 +35,7 @@ function typicalActor(type: UserType): Actor {
     reportCount: type === "manager" ? 1 : 0,
     leadOf: type === "practice_lead" ? [PRACTICE] : [],
     siteLead: type === "site_lead",
+    basic: type === "basic",
   };
 }
 
@@ -48,6 +52,7 @@ export interface PermissionGroup {
 }
 
 const everyone = (): Record<UserType, boolean> => ({
+  basic: true,
   employee: true,
   manager: true,
   practice_lead: true,

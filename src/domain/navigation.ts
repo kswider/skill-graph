@@ -1,4 +1,4 @@
-import { can, isManager, isPracticeLead, type Actor } from "./access";
+import { can, isBasic, isManager, isPracticeLead, type Actor } from "./access";
 
 export interface NavItem {
   label: string;
@@ -12,6 +12,18 @@ export interface NavGroup {
 
 /** The menu for a person: what everyone gets, plus a group for each user type they are (docs/PLAN.md §5). */
 export function navigationFor(actor: Actor): NavGroup[] {
+  const explore: NavGroup = {
+    id: "explore",
+    label: "Explore Skills",
+    items: [
+      { label: "Home", href: "/" },
+      { label: "Roles", href: "/roles" },
+      { label: "Catalogue", href: "/catalogue" },
+      { label: "Graph", href: "/explore" },
+      { label: "Compare", href: "/compare" },
+    ],
+  };
+  if (isBasic(actor)) return [explore];
   const groups: NavGroup[] = [
     {
       id: "me",
@@ -21,17 +33,7 @@ export function navigationFor(actor: Actor): NavGroup[] {
         { label: "My development plan", href: "/me/plan" },
       ],
     },
-    {
-      id: "explore",
-      label: "Explore Skills",
-      items: [
-        { label: "Home", href: "/" },
-        { label: "Roles", href: "/roles" },
-        { label: "Catalogue", href: "/catalogue" },
-        { label: "Graph", href: "/explore" },
-        { label: "Compare", href: "/compare" },
-      ],
-    },
+    explore,
   ];
   // Career Advisors and Practice Leads send and review change requests; the Site Lead can step in (docs/PLAN.md §1)
   if (can(actor, "changeRequest:create", { practiceId: "" }) || actor.siteLead) {

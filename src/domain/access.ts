@@ -20,8 +20,11 @@ export interface Actor {
   /** practices they are a Practice Lead of */
   leadOf: PracticeRef[];
   siteLead: boolean;
+  /** limited to Explore Skills: no profile of their own and none of the other user types */
+  basic?: boolean;
 }
 
+export const isBasic = (actor: Actor) => actor.basic === true;
 export const isManager = (actor: Actor) => actor.reportCount > 0;
 export const isPracticeLead = (actor: Actor) => actor.leadOf.length > 0;
 const leads = (actor: Actor, practiceId: string) => actor.leadOf.some((p) => p.id === practiceId);
@@ -72,10 +75,11 @@ const inScope = (actor: Actor, scope: Scope) =>
 
 const rules: { [A in Action]: (actor: Actor, resource: Resources[A]) => boolean } = {
   "profile:view": (a, p) =>
-    p.id === a.userId || p.managerId === a.userId || (p.practiceId !== null && leads(a, p.practiceId)),
-  "profile:edit": (a, p) => p.id === a.userId,
-  "recommendation:create": (a, p) => p.managerId === a.userId && p.id !== a.userId,
-  "recommendation:answer": (a, r) => r.personId === a.userId,
+    !isBasic(a) &&
+    (p.id === a.userId || p.managerId === a.userId || (p.practiceId !== null && leads(a, p.practiceId))),
+  "profile:edit": (a, p) => !isBasic(a) && p.id === a.userId,
+  "recommendation:create": (a, p) => !isBasic(a) && p.managerId === a.userId && p.id !== a.userId,
+  "recommendation:answer": (a, r) => !isBasic(a) && r.personId === a.userId,
   "aggregates:view": inScope,
   "succession:view": inScope,
   // managers and Practice Leads send feedback; a Practice Lead may also send it to other practices

@@ -275,7 +275,7 @@ test("the audit log pages through everything, newest first, and can be filtered"
   await expect(main(page)).not.toContainText("created the practice");
 });
 
-test("Permissions: the Site Lead sees the four user types and what each may do, read-only", async ({
+test("Permissions: the Site Lead sees the five user types and what each may do, read-only", async ({
   page,
 }) => {
   await signInAs(page, "Jordan Kim");
@@ -283,10 +283,11 @@ test("Permissions: the Site Lead sees the four user types and what each may do, 
   await page.getByRole("link", { name: "Permissions" }).first().click();
   await expect(page.getByRole("heading", { level: 1, name: "Permissions" })).toBeVisible();
   const types = page.getByRole("region", { name: "User types" }).getByRole("listitem");
-  await expect(types).toHaveText([/Employee/, /Career Advisor/, /Practice Lead/, /Site Lead/]);
+  await expect(types).toHaveText([/Basic/, /Employee/, /Career Advisor/, /Practice Lead/, /Site Lead/]);
   const table = page.getByRole("table", { name: "What each type of user may do" });
   await expect(table.getByRole("columnheader")).toHaveText([
     "Can…",
+    "Basic",
     "Employee",
     "Career Advisor",
     "Practice Lead",

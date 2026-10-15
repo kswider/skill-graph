@@ -9,11 +9,13 @@ import { developmentPlan } from "@/domain/plan";
 import { targetLabel } from "@/domain/graph";
 import { slugOfTarget } from "@/domain/profile-input";
 import { loadMe } from "@/lib/me";
+import { requireOwnProfile } from "@/lib/session";
 import { answerRecommendationAction } from "../actions";
 
 export const metadata = { title: "My development plan · Skill Navigator" };
 
 export default async function Plan() {
+  await requireOwnProfile();
   const { graph, mine, recommendations, today } = await loadMe();
   if (!mine?.profile.current) redirect("/onboarding");
   const { profile } = mine;

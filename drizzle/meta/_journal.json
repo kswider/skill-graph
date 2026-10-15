@@ -29,6 +29,13 @@
       "when": 1791623800173,
       "tag": "0003_profile_theme",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792057134826,
+      "tag": "0004_basic_users",
+      "breakpoints": true
     }
   ]
 }
