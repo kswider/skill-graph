@@ -1,35 +1,39 @@
-// `pnpm db:up`: starts the local Postgres in Docker (plain `docker`, so Colima, OrbStack and Docker Desktop all work)
-// and waits until it accepts connections. `pnpm db:down` stops it; the data stays in the `skill-graph-db` volume.
+// `pnpm db:up`: starts the local Postgres in Docker (plain `docker`, so Colima, OrbStack and Docker Desktop all work,
+// or Docker inside WSL on Windows) and waits until it accepts connections. `pnpm db:down` (`--down`) stops it;
+// the data stays in the `skill-graph-db` volume.
 import { execFileSync, spawnSync } from "node:child_process";
+import { dockerCommand } from "./docker.mjs";
 
 const name = "skill-graph-db";
-const docker = (...args: string[]) => spawnSync("docker", args, { encoding: "utf8" });
+const docker = (...args: string[]) => spawnSync(...dockerCommand(args), { encoding: "utf8" });
+const dockerInherit = (...args: string[]) => execFileSync(...dockerCommand(args), { stdio: "inherit" });
+
+if (process.argv.includes("--down")) {
+  dockerInherit("stop", name);
+  process.exit(0);
+}
 
 const inspect = docker("inspect", "-f", "{{.State.Running}}", name);
 if (inspect.status !== 0) {
-  execFileSync(
-    "docker",
-    [
-      "run",
-      "-d",
-      "--name",
-      name,
-      "-p",
-      "5433:5432", // 5433 so it doesn't clash with another local Postgres
-      "-e",
-      "POSTGRES_USER=skillgraph",
-      "-e",
-      "POSTGRES_PASSWORD=skillgraph",
-      "-e",
-      "POSTGRES_DB=skillgraph",
-      "-v",
-      `${name}:/var/lib/postgresql/data`,
-      "postgres:17-alpine",
-    ],
-    { stdio: "inherit" },
+  dockerInherit(
+    "run",
+    "-d",
+    "--name",
+    name,
+    "-p",
+    "5433:5432", // 5433 so it doesn't clash with another local Postgres
+    "-e",
+    "POSTGRES_USER=skillgraph",
+    "-e",
+    "POSTGRES_PASSWORD=skillgraph",
+    "-e",
+    "POSTGRES_DB=skillgraph",
+    "-v",
+    `${name}:/var/lib/postgresql/data`,
+    "postgres:17-alpine",
   );
 } else if (inspect.stdout.trim() !== "true") {
-  execFileSync("docker", ["start", name], { stdio: "ignore" });
+  dockerInherit("start", name);
 }
 
 // over TCP, so the temporary server Postgres runs during first-time setup (socket only) doesn't count as ready

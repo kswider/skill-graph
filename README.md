@@ -25,7 +25,14 @@ Storybook with every primitive and component, in the Orange and Violet themes (l
 
 ## Getting started
 
-Requirements: Node 24+, pnpm (the version is pinned in `package.json`), Docker (Colima, OrbStack or Docker Desktop) for the local database.
+Requirements: Node 24+, pnpm (the version is pinned in `package.json`), Docker (Colima, OrbStack, Docker Desktop, or Docker installed inside WSL on Windows) for the local database.
+
+```bash
+pnpm install
+pnpm dev:local               # creates .env.local, starts Postgres, migrates and seeds, runs the dev server
+```
+
+Or step by step:
 
 ```bash
 pnpm install
@@ -67,6 +74,7 @@ The target is WCAG 2.2 AA, checked in the repository rather than by hand:
 | Command                                     | What it does                                                                      |
 | ------------------------------------------- | --------------------------------------------------------------------------------- |
 | `pnpm dev`                                  | Dev server                                                                        |
+| `pnpm dev:local`                            | `db:up`, `db:migrate`, `db:seed`, then the dev server (keeps WSL awake if needed) |
 | `pnpm check`                                | Only the checks that matter for what changed; `pnpm check --full` runs everything |
 | `pnpm lint`, `pnpm typecheck`, `pnpm test`  | ESLint, `next typegen` + `tsc`, Vitest                                            |
 | `pnpm format`                               | Prettier                                                                          |
@@ -93,11 +101,12 @@ gh pr create --fill
 gh pr merge --auto --squash --delete-branch
 ```
 
-Claude Code follows the same flow automatically:
+Claude Code and GitHub Copilot (VS Code agent mode) follow the same flow automatically:
 
 - `AGENTS.md` holds the rules.
-- `.claude/hooks/guard-main.mjs` blocks commits and pushes on `main`.
-- The `/feature` and `/ship` skills start and finish a branch.
+- `.github/hooks/guard-main.mjs` blocks commits and pushes on `main`. Claude registers it in `.claude/settings.json`, Copilot in `.github/hooks/guard-main.json`; it needs a trusted workspace in VS Code.
+- `.vscode/settings.json` auto-approves the same safe commands for Copilot that `.claude/settings.json` allows for Claude.
+- The `/feature` and `/ship` skills (`.claude/skills/`) start and finish a branch in both tools.
 
 `scripts/setup-repository.sh` (re)applies the GitHub settings and the ruleset:
 

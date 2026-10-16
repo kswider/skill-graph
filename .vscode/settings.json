@@ -1,0 +1,24 @@
+{
+  // GitHub Copilot: the hook in .github/hooks/guard-main.json keeps work off main
+  "chat.useHooks": true,
+  // .claude/settings.json registers the same hook; loading it too would run it twice
+  "chat.useClaudeHooks": false,
+  // mirrors the allow and deny lists in .claude/settings.json
+  "chat.tools.terminal.autoApprove": {
+    "/^pnpm\\b/": true,
+    "/^git (status|diff|log|show|fetch)\\b/": true,
+    "/^git (switch|branch|add|commit) /": true,
+    "/^git pull --ff-only\\b/": true,
+    "/^git push -u origin /": true,
+    "/^git push$/": true,
+    "/^gh pr (create|view|checks|list|update-branch) /": true,
+    "/^gh pr list$/": true,
+    "/^gh pr merge \\S+ --auto --squash --delete-branch$/": true,
+    "/^gh run (view|list)\\b/": true,
+    "/^docker (ps|logs)\\b/": true,
+    "/^git push\\b.*\\s(-f|--force)/": false,
+    "/^git push origin (HEAD:)?main\\b/": false,
+    "/^gh pr merge .*--admin/": false,
+    "/^gh api .*rulesets/": false
+  }
+}

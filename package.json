@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "tsx scripts/dev.mts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -14,7 +15,7 @@
     "format:check": "prettier --check .",
     "check": "tsx scripts/check.mts",
     "db:up": "tsx scripts/db-up.mts",
-    "db:down": "docker stop skill-graph-db",
+    "db:down": "tsx scripts/db-up.mts --down",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db-migrate.mts",
     "db:seed": "tsx scripts/db-seed.mts",

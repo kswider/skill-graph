@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   test: {
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", ".github/hooks/*.test.ts"],
     exclude: ["**/*.db.test.ts", "node_modules/**"],
     coverage: {
       provider: "v8",

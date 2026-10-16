@@ -14,7 +14,7 @@ An internal tool that shows roles (with specialisations) and what they require (
 
 ## Git workflow (always)
 
-- **Never commit, merge or push on `main`.** `main` changes only through pull requests that pass CI; a ruleset on GitHub and the hook in `.claude/hooks/guard-main.mjs` both enforce it.
+- **Never commit, merge or push on `main`.** `main` changes only through pull requests that pass CI; a ruleset on GitHub and the hook in `.github/hooks/guard-main.mjs` (wired up for Claude Code and GitHub Copilot) both enforce it.
 - **One branch per feature**, from an up-to-date `main`: `feat|fix|chore|docs/<milestone>-<slug>`, e.g. `feat/m4-role-browser`. Use the `/feature <slug>` skill to start one.
 - `docs/*` (and Dependabot) branches get **no Vercel preview and no Neon database branch** (`vercel.json` → `git.deploymentEnabled`): use `docs/` only for changes to documentation. The free Neon plan has 10 branches, one per preview.
 - Keep PRs small: a milestone is usually several PRs. Commit messages and PR titles use Conventional Commits (`feat: …`, `fix: …`); the PR title becomes the squash commit on `main`.
@@ -47,6 +47,7 @@ An internal tool that shows roles (with specialisations) and what they require (
 | Command                                      | What it does                                                                              |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `pnpm dev`                                   | Dev server on http://localhost:3000                                                       |
+| `pnpm dev:local`                             | Starts the local Postgres (Docker, or Docker inside WSL), migrates, seeds, then `dev`     |
 | `pnpm check`                                 | Only the checks that matter for what changed (vs `origin/main`); `--full` runs everything |
 | `pnpm lint` / `pnpm typecheck` / `pnpm test` | ESLint / `next typegen` + `tsc` / Vitest unit tests                                       |
 | `pnpm format`                                | Prettier                                                                                  |
@@ -60,4 +61,6 @@ An internal tool that shows roles (with specialisations) and what they require (
 | `src/db/`         | Drizzle schema, `graph.ts` (loads the graph and profiles for the domain), seed; `drizzle/` holds the SQL migrations                                                                                       |
 | `src/components/` | UI components (shadcn/ui based)                                                                                                                                                                           |
 | `scripts/`        | `check.mts` (local checks), `setup-repository.sh` (GitHub settings and ruleset)                                                                                                                           |
-| `.claude/`        | Hook and skills for the branch workflow                                                                                                                                                                   |
+| `.claude/`        | Claude Code settings and the skills (`/feature`, `/ship`) for the branch workflow, which Copilot also uses                                                                                                |
+| `.github/hooks/`  | The guard-main hook shared by Claude Code and Copilot                                                                                                                                                     |
+| `.vscode/`        | Copilot terminal auto-approve rules and hook settings, dev server launch config                                                                                                                           |

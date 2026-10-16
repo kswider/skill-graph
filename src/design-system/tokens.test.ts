@@ -69,6 +69,8 @@ describe("tokens.css", () => {
   it("is up to date with tokens.ts (run `pnpm tokens` after changing tokens)", async () => {
     const { readFileSync } = await import("node:fs");
     const { renderTokensCss } = await import("./render-css");
-    expect(readFileSync("src/design-system/tokens.css", "utf8")).toBe(renderTokensCss());
+    // a Windows checkout may have CRLF line endings
+    const css = readFileSync("src/design-system/tokens.css", "utf8").replaceAll("\r\n", "\n");
+    expect(css).toBe(renderTokensCss());
   });
 });
