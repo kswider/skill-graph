@@ -551,7 +551,7 @@ Seed v2 (M2) holds:
 3. The demo sign-in offers a seventh account, Sky Bennett (Basic, no profile, no practice).
 4. **Default demo person**: with `DEFAULT_DEMO_EMAIL` set (only where demo sign-in is on), a request without a session is sent through `/auto-sign-in`, which signs in as that person; the sign-in page does the same. `/sign-in?manual=1` still shows the picker, even when signed in. Signing out lands on `/sign-in`, so it signs you straight back in as the default person. The end-to-end tests blank the variable (`playwright.config.ts`), because they sign in as each person.
 
-**M13-b: going live (needs the owner's Microsoft tenant and Vercel settings; Claude cannot do these).** Done when the last box is ticked.
+**M13-b: going live (needs the owner's Microsoft tenant and Vercel settings; a coding agent cannot do these).** Done when the last box is ticked.
 
 - [ ] Entra: register the app (redirect URI `https://<production domain>/api/auth/callback/microsoft`), create a client secret; if the tenant blocks consent, IT grants admin consent once (README, "Sign-in").
 - [ ] Vercel, Production only: `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `BETTER_AUTH_URL`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_TENANT_ID`; redeploy.
@@ -591,16 +591,17 @@ Before any wider rollout (decisions for the owner, not blockers for M13-b): Verc
 
 **Local checks**: `scripts/check.mts` runs only what the change touches; `--full` runs everything.
 
-**Claude configuration (committed in the repo)**
+**Agent configuration (committed in the repo; Claude Code and GitHub Copilot in VS Code)**
 
-- `CLAUDE.md` → `@AGENTS.md` (keeps the Next 16 docs note). It adds the Git workflow, the definition of done, database rules, commands and an architecture map.
-- `.claude/hooks/guard-main.mjs`, run as a PreToolUse hook on Bash. It **blocks**:
+- `AGENTS.md` holds the rules: the Git workflow, the definition of done, database rules, commands and an architecture map. Copilot reads it directly; `CLAUDE.md` → `@AGENTS.md` (keeps the Next 16 docs note).
+- `.github/hooks/guard-main.mjs`, a PreToolUse hook registered for Claude in `.claude/settings.json` (on Bash) and for Copilot in `.github/hooks/guard-main.json` (Copilot ignores matchers, so the script skips tools without a shell command; it understands bash and PowerShell). Tested in `.github/hooks/guard-main.test.ts`. It **blocks**:
   - commits, merges and pushes on `main`
   - pushes that target `main`
   - `--force` / `--no-verify`
   - `gh pr merge --admin`
-- `.claude/settings.json`: the hook, an allowlist (pnpm, git on feature branches, `gh pr …`, read-only docker) and a denylist (force pushes, pushes to `main`, admin merges, ruleset changes).
-- `.claude/skills/feature/SKILL.md` (`/feature <slug>`) and `.claude/skills/ship/SKILL.md` (`/ship`): start a branch from an up-to-date `main`; check, push, open the PR, auto-merge, follow CI, clean up.
+- `.claude/settings.json`: the hook, an allowlist (pnpm, git on feature branches, `gh pr …`, read-only docker) and a denylist (force pushes, pushes to `main`, admin merges, ruleset changes). `.vscode/settings.json` mirrors both lists as Copilot terminal auto-approve rules and turns off `chat.useClaudeHooks` so the hook doesn't run twice.
+- `.claude/skills/feature/SKILL.md` (`/feature <slug>`) and `.claude/skills/ship/SKILL.md` (`/ship`): start a branch from an up-to-date `main`; check, push, open the PR, auto-merge, follow CI, clean up. Copilot discovers skills in `.claude/skills/` too.
+- `.claude/launch.json` and `.vscode/launch.json`: the dev server.
 - `.github/pull_request_template.md`.
 
 **Manual setup by the repository owner** (accounts and secrets):

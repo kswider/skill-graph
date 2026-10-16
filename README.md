@@ -93,11 +93,12 @@ gh pr create --fill
 gh pr merge --auto --squash --delete-branch
 ```
 
-Claude Code follows the same flow automatically:
+Claude Code and GitHub Copilot (VS Code agent mode) follow the same flow automatically:
 
 - `AGENTS.md` holds the rules.
-- `.claude/hooks/guard-main.mjs` blocks commits and pushes on `main`.
-- The `/feature` and `/ship` skills start and finish a branch.
+- `.github/hooks/guard-main.mjs` blocks commits and pushes on `main`. Claude registers it in `.claude/settings.json`, Copilot in `.github/hooks/guard-main.json`; it needs a trusted workspace in VS Code.
+- `.vscode/settings.json` auto-approves the same safe commands for Copilot that `.claude/settings.json` allows for Claude.
+- The `/feature` and `/ship` skills (`.claude/skills/`) start and finish a branch in both tools.
 
 `scripts/setup-repository.sh` (re)applies the GitHub settings and the ruleset:
 
