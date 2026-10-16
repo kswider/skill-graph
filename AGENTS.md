@@ -47,6 +47,7 @@ An internal tool that shows roles (with specialisations) and what they require (
 | Command                                      | What it does                                                                              |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `pnpm dev`                                   | Dev server on http://localhost:3000                                                       |
+| `pnpm dev:local`                             | Starts the local Postgres (Docker, or Docker inside WSL), migrates, seeds, then `dev`     |
 | `pnpm check`                                 | Only the checks that matter for what changed (vs `origin/main`); `--full` runs everything |
 | `pnpm lint` / `pnpm typecheck` / `pnpm test` | ESLint / `next typegen` + `tsc` / Vitest unit tests                                       |
 | `pnpm format`                                | Prettier                                                                                  |
