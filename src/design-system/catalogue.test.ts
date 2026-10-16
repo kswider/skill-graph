@@ -1,11 +1,11 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { componentCatalogue, docsId } from "./catalogue";
 
 const componentFiles = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => {
-    const path = join(dir, f);
+    // forward slashes on every OS, as in catalogue.ts
+    const path = `${dir}/${f}`;
     if (statSync(path).isDirectory()) return componentFiles(path);
     return path.endsWith(".tsx") && !path.endsWith(".stories.tsx") ? [path] : [];
   });
